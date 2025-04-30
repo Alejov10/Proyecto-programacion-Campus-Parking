@@ -1,6 +1,9 @@
 # trabajo-parqueadero
 ## Logo
-<image src="blob:https://web.whatsapp.com/e2b1b174-6abd-4b19-8829-3c300f755b24" alt="Descripción de la imagen">
+![Descripción de la imagen](![WhatsApp Image 2025-04-29 at 3 48 33 PM](https://github.com/user-attachments/assets/188cb7c2-751d-407d-a6ec-6def5eb5185c)
+)
+
+
 
 
 ## Escribir un párrafo con una descripción general del proyecto.
