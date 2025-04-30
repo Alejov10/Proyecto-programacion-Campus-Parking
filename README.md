@@ -1,6 +1,6 @@
 # trabajo-parqueadero
 ## Logo
-<image src="/images/picture.jpg" alt="Descripción de la imagen">
+<image src="/images/picture.jpg">
 
 
 ## Escribir un párrafo con una descripción general del proyecto.
