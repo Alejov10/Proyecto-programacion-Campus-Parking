@@ -12,5 +12,6 @@ Este proyecto tiene como propósito crear un programa en python, para gestionar 
 
 ## Alejandro Villegas Castro:    
 ## Karol julieth Cuellar:        
-## Samuel Arbelaez Sossa: tengo 18 años,pertenezco a ingenieria industrial,mis habilidades  son:El trabajo en equipo,capacidad de aforntar situaciones imprevistas,comunicacion afectiva, y mis fortalezas son:Sentido de responsabilidad, empatia a los demas miembros del equipo,estar abierto a las criticas constructivas con tal de mejorar y aprender.
+## Samuel Arbelaez Sossa
+tengo 18 años,pertenezco a ingenieria industrial,mis habilidades  son:El trabajo en equipo,capacidad de aforntar situaciones imprevistas,comunicacion afectiva, y mis fortalezas son:Sentido de responsabilidad, empatia a los demas miembros del equipo,estar abierto a las criticas constructivas con tal de mejorar y aprender.
 
