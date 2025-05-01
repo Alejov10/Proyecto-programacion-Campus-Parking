@@ -11,4 +11,4 @@ Este proyecto tiene como propósito crear un programa en python, para gestionar 
 ## Presentacion del equipo
 
 ## | Alejandro Villegas Castro | Karol julieth Cuellar | Samuel Arbelaez Sossa |
-|------------------------------|-----------------------|-----------------------|
+
