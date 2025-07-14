@@ -1,1 +1,216 @@
+import csv
+import datetime
+import random
+
+# Listas y variables globales
+lista_usuarios_registrados = []  # Lista para almacenar usuarios registrados
+lista_parqueadero = []  # Lista de vehículos actualmente en el parqueadero
+lista_vehiculos_retirados = []  # Lista de vehículos que han salido
+espacios_disponibles = [f"P{n+1}" for n in range(50)]  # Espacios de parqueo disponibles (50)
+admin_credenciales = {"campusparking": "12345"}  # Usuario y contraseña de administrador
+
+# Función para registrar usuario
+def registrar_usuario(nombre, apellido, documento, placa):
+    """
+    Registra un nuevo usuario con validaciones de nombre, apellido, documento y placa.
+    """
+    dic_usuario = {}
+    errores = []
+
+    # Validar nombre
+    if len(nombre) < 3 or any(c.isdigit() for c in nombre):
+        errores.append("Nombre inválido (mínimo 3 letras, sin números).")
+    # Validar apellido
+    if len(apellido) < 3 or any(c.isdigit() for c in apellido):
+        errores.append("Apellido inválido (mínimo 3 letras, sin números).")
+    # Validar documento
+    if not (3 <= len(documento) <= 15) or not documento.isdigit():
+        errores.append("Documento inválido (3-15 dígitos numéricos).")
+    # Validar placa
+    if len(placa) != 6 or not (placa[:3].isalpha() and placa[3:].isdigit()):
+        errores.append("Placa inválida (formato ABC123).")
+
+    if errores:
+        return False, errores  # Devolver errores si hay
+
+    dic_usuario = {
+        "nombre": nombre,
+        "apellido": apellido,
+        "documento": documento,
+        "placa": placa.upper()
+    }
+    return True, dic_usuario  # Usuario registrado exitosamente
+
+# Función para ingresar vehículo
+def ingresar_vehiculo():
+    """
+    Ingresa un vehículo al parqueadero si el usuario está registrado y hay espacios.
+    """
+    documento = input("Documento: ")
+    placa = input("Placa (ABC123): ").upper()
+    
+    # Verificar si el usuario está registrado
+    usuario = next((u for u in lista_usuarios_registrados if u['documento'] == documento and u['placa'] == placa), None)
+    if not usuario:
+        print("Usuario o vehículo no registrado.")
+        return
+
+    # Verificar si el vehículo ya está en el parqueadero
+    if any(v['Placa'] == placa for v in lista_parqueadero):
+        print("Vehículo ya está en el parqueadero.")
+        return
+
+    # Verificar disponibilidad de espacios
+    if not espacios_disponibles:
+        print("No hay espacios disponibles.")
+        return
+
+    # Asignar espacio y registrar ingreso
+    espacio = espacios_disponibles.pop(0)
+    hora_ingreso = datetime.datetime.now()
+    registro = {
+        "Placa": placa,
+        "Usuario": usuario,
+        "Espacio": espacio,
+        "HoraIngreso": hora_ingreso
+    }
+    lista_parqueadero.append(registro)
+    print(f"✅ Vehículo ingresado. Espacio asignado: {espacio}")
+
+# Función para retirar vehículo
+def retirar_vehiculo():
+    """
+    Retira un vehículo del parqueadero y calcula el cobro según el tiempo de permanencia.
+    """
+    placa = input("Ingrese la placa: ").upper()
+    
+    # Buscar vehículo en el parqueadero
+    registro = next((v for v in lista_parqueadero if v['Placa'] == placa), None)
+    if not registro:
+        print("Vehículo no está en el parqueadero.")
+        return
+
+    # Calcular tiempo y cobro
+    hora_salida = datetime.datetime.now()
+    tiempo = hora_salida - registro['HoraIngreso']
+    horas = tiempo.seconds // 3600
+    minutos = (tiempo.seconds % 3600) // 60
+    cuartos = minutos // 15
+    cobro = max(7000, horas*7000 + cuartos*1500)  # Cobro mínimo una hora
+
+    # Actualizar listas y liberar espacio
+    lista_parqueadero.remove(registro)
+    espacios_disponibles.append(registro['Espacio'])
+    lista_vehiculos_retirados.append({
+        "Placa": placa,
+        "HoraIngreso": registro['HoraIngreso'].strftime('%Y-%m-%d %H:%M:%S'),
+        "HoraSalida": hora_salida.strftime('%Y-%m-%d %H:%M:%S'),
+        "Tiempo": f"{horas}h {minutos}min",
+        "Cobro": cobro
+    })
+    print(f"✅ Vehículo retirado. Total a pagar: ${cobro}")
+
+# Exportar datos a CSV
+def exportar_csv():
+    """
+    Exporta la información de usuarios y vehículos retirados a un archivo CSV.
+    """
+    try:
+        with open("resumen_parqueadero.csv", mode="w", newline="", encoding="utf-8") as archivo_csv:
+            writer = csv.writer(archivo_csv, delimiter=';')  # Usar ; como separador
+
+            # Encabezado general
+            writer.writerow(["--- RESUMEN DEL PARQUEADERO ---"])
+            writer.writerow(["Total usuarios registrados", len(lista_usuarios_registrados)])
+            writer.writerow(["Total vehiculos en parqueadero", len(lista_parqueadero)])
+            writer.writerow(["Total vehiculos retirados", len(lista_vehiculos_retirados)])
+
+            total_pago = sum(v['Cobro'] for v in lista_vehiculos_retirados)
+            writer.writerow(["Total dinero recibido", f"${total_pago}"])
+            writer.writerow([])  # Línea en blanco
+
+            # Detalle de usuarios registrados
+            writer.writerow(["Usuarios registrados:"])
+            writer.writerow(["Nombre", "Apellido", "Documento", "Placa"])
+            for u in lista_usuarios_registrados:
+                writer.writerow([u['nombre'], u['apellido'], u['documento'], u['placa']])
+            writer.writerow([])  # Línea en blanco
+
+            # Detalle de vehículos retirados
+            writer.writerow(["Vehiculos retirados:"])
+            for v in lista_vehiculos_retirados:
+                writer.writerow([f"Placa: {v['Placa']}"])  # Mostrar placa primero
+                writer.writerow(["Hora de ingreso", v['HoraIngreso']])
+                writer.writerow(["Hora de salida", v['HoraSalida']])
+                writer.writerow(["Tiempo total", v['Tiempo']])
+                writer.writerow(["Total pagado", f"${v['Cobro']}"])
+                writer.writerow([])  # Línea en blanco para separar cada vehículo
+
+        print("✅ Archivo 'resumen_parqueadero.csv' exportado correctamente.")
+    except Exception as e:
+        print(f"❌ Error al exportar CSV: {e}")
+
+# Función administrador
+def admin_menu():
+    """
+    Acceso al panel de administración para ver reportes generales.
+    """
+    usuario = input("Usuario admin: ")
+    contrasena = input("Contraseña: ")
+    
+    # Verificar credenciales
+    if admin_credenciales.get(usuario) != contrasena:
+        print("❌ Acceso denegado.")
+        return
+
+    # Mostrar reportes
+    print("\n--- PANEL DE ADMINISTRACIÓN ---")
+    print(f"Usuarios registrados: {len(lista_usuarios_registrados)}")
+    print(f"Vehículos en parqueadero: {len(lista_parqueadero)}")
+    print(f"Vehículos retirados: {len(lista_vehiculos_retirados)}")
+
+# Menú principal
+def menu():
+    """
+    Muestra el menú principal y gestiona las opciones seleccionadas.
+    """
+    while True:
+        print("\n--- CAMPUS PARKING ---")
+        print("1. Registrar usuario")
+        print("2. Ingresar vehículo")
+        print("3. Retirar vehículo")
+        print("4. Administrador")
+        print("5. Salir y exportar CSV")
+        
+        opcion = input("Seleccione opción: ")
+
+        if opcion == "1":
+            nombre = input("Nombre: ")
+            apellido = input("Apellido: ")
+            documento = input("Documento: ")
+            placa = input("Placa (ABC123): ")
+            exito, resultado = registrar_usuario(nombre, apellido, documento, placa)
+            if exito:
+                lista_usuarios_registrados.append(resultado)
+                print("✅ Usuario registrado correctamente.")
+            else:
+                print("❌ Errores encontrados:")
+                for e in resultado:
+                    print(f"- {e}")
+        elif opcion == "2":
+            ingresar_vehiculo()
+        elif opcion == "3":
+            retirar_vehiculo()
+        elif opcion == "4":
+            admin_menu()
+        elif opcion == "5":
+            exportar_csv()
+            print("👋 Saliendo del sistema. ¡Gracias por usar CAMPUS PARKING!")
+            break
+        else:
+            print("❌ Opción inválida.")
+
+# Inicia el programa
+if __name__ == "__main__":
+    menu()
 
